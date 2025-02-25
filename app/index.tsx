@@ -1,8 +1,14 @@
-import { StatusBar } from "expo-status-bar";
-import { Alert, StyleSheet, TextInput, ScrollView } from "react-native";
+import { useState } from "react";
+import {
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 import ShoppingListItem from "../components/ShoppingListItem";
 import { theme } from "../theme";
-import { useState } from "react";
 
 type ShoppingListItemType = {
   id: string;
@@ -39,29 +45,34 @@ export default function App() {
     setShoppingList(shoppingList.filter((item) => item.id !== id));
   };
   return (
-    <ScrollView
+    <FlatList
+      data={shoppingList}
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       stickyHeaderIndices={[0]}
-    >
-      <TextInput
-        value={value}
-        onChangeText={setValue}
-        style={styles.input}
-        placeholder="E.g Coffee"
-        returnKeyType="done"
-        onSubmitEditing={handleSubmit}
-      />
-      <StatusBar style="dark" />
-      {shoppingList.map((item) => (
+      ListEmptyComponent={
+        <View style={styles.listEmptyContainer}>
+          <Text>Your shooping list is empty</Text>
+        </View>
+      }
+      ListHeaderComponent={
+        <TextInput
+          value={value}
+          onChangeText={setValue}
+          style={styles.input}
+          placeholder="E.g Coffee"
+          returnKeyType="done"
+          onSubmitEditing={handleSubmit}
+        />
+      }
+      renderItem={({ item }) => (
         <ShoppingListItem
-          key={item.id}
           name={item.name}
           isCompleted={item.isCompleted}
           onComplete={() => onComplete(item.id)}
         />
-      ))}
-    </ScrollView>
+      )}
+    />
   );
 }
 
@@ -83,6 +94,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     borderRadius: 20,
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 10,
+  },
+  listEmptyContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 18,
   },
 });

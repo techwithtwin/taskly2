@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Alert,
   FlatList,
@@ -6,38 +6,69 @@ import {
   Text,
   TextInput,
   View,
+  LayoutAnimation,
 } from "react-native";
 import ShoppingListItem from "../components/ShoppingListItem";
 import { theme } from "../theme";
+import { getFromStorage, saveToStorage } from "../utils/storage";
+import { storageKey } from "../constants";
 
 type ShoppingListItemType = {
   id: string;
   name: string;
   completedAtTimestamp?: number;
+  lastUpdatedTimestamp: number;
 };
 
 export default function App() {
   const [value, setValue] = useState("");
   const [shoppingList, setShoppingList] = useState<ShoppingListItemType[]>([]);
 
-  const handleSubmit = () => {
+  useEffect(() => {
+    const fetchInitial = async () => {
+      const data = await getFromStorage(storageKey);
+
+      if (data) {
+        LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+        setShoppingList(data);
+      }
+    };
+
+    fetchInitial();
+  }, []);
+
+  const handleSubmit = async () => {
     if (!value) {
       Alert.alert("Invalid Item name");
       return;
     }
-
-    setShoppingList((p) => [
-      { id: Date.now().toString(), name: value, isCompleted: false },
-      ...p,
-    ]);
-
+    const existingShoppingList = shoppingList;
+    const newShoppingList: ShoppingListItemType[] = [
+      {
+        id: Date.now().toString(),
+        name: value,
+        lastUpdatedTimestamp: Date.now(),
+      },
+      ...existingShoppingList,
+    ];
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShoppingList(newShoppingList);
     setValue("");
+    const isSaved = await saveToStorage(storageKey, newShoppingList);
+
+    if (!isSaved) {
+      console.log("Failed to save item to async storage");
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+      setShoppingList(existingShoppingList);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setShoppingList(shoppingList.filter((item) => item.id !== id));
+  const handleDelete = async (id: string) => {
+    const newItems = shoppingList.filter((item) => item.id !== id);
+    setShoppingList(newItems);
+    await saveToStorage(storageKey, newItems);
   };
-  const handleToggleComplete = (id: string) => {
+  const handleToggleComplete = async (id: string) => {
     const newItems = shoppingList.map((item) => {
       if (item.id === id) {
         return {
@@ -45,28 +76,38 @@ export default function App() {
           completedAtTimestamp: item.completedAtTimestamp
             ? undefined
             : Date.now(),
+          lastUpdatedTimestamp: Date.now(),
         };
       } else {
         return item;
       }
     });
-
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     setShoppingList(newItems);
+    await saveToStorage(storageKey, newItems);
   };
 
-  const sortedShoppingList = () => {
-    const sortedList = shoppingList.sort((a, b) => {
-      if (!a.completedAtTimestamp && !b.completedAtTimestamp) {
-        return a.name.localeCompare(b.name);
+  function sortedShoppingList() {
+    return shoppingList.sort((item1, item2) => {
+      if (item1.completedAtTimestamp && item2.completedAtTimestamp) {
+        return item2.completedAtTimestamp - item1.completedAtTimestamp;
       }
-      if (!a.completedAtTimestamp) return -1;
-      if (!b.completedAtTimestamp) return 1;
+
+      if (item1.completedAtTimestamp && !item2.completedAtTimestamp) {
+        return 1;
+      }
+
+      if (!item1.completedAtTimestamp && item2.completedAtTimestamp) {
+        return -1;
+      }
+
+      if (!item1.completedAtTimestamp && !item2.completedAtTimestamp) {
+        return item2.lastUpdatedTimestamp - item1.lastUpdatedTimestamp;
+      }
 
       return 0;
     });
-
-    return sortedList;
-  };
+  }
   return (
     <FlatList
       data={sortedShoppingList()}

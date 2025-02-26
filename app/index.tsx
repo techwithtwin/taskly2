@@ -13,19 +13,12 @@ import { theme } from "../theme";
 type ShoppingListItemType = {
   id: string;
   name: string;
-  isCompleted: boolean;
+  completedAtTimestamp?: number;
 };
-
-const initialList: ShoppingListItemType[] = [
-  { id: "1", name: "Coffee", isCompleted: false },
-  { id: "2", name: "Tea", isCompleted: false },
-  { id: "3", name: "Milk", isCompleted: true },
-];
 
 export default function App() {
   const [value, setValue] = useState("");
-  const [shoppingList, setShoppingList] =
-    useState<ShoppingListItemType[]>(initialList);
+  const [shoppingList, setShoppingList] = useState<ShoppingListItemType[]>([]);
 
   const handleSubmit = () => {
     if (!value) {
@@ -41,8 +34,24 @@ export default function App() {
     setValue("");
   };
 
-  const onComplete = (id: string) => {
+  const handleDelete = (id: string) => {
     setShoppingList(shoppingList.filter((item) => item.id !== id));
+  };
+  const handleToggleComplete = (id: string) => {
+    const newItems = shoppingList.map((item) => {
+      if (item.id === id) {
+        return {
+          ...item,
+          completedAtTimestamp: item.completedAtTimestamp
+            ? undefined
+            : Date.now(),
+        };
+      } else {
+        return item;
+      }
+    });
+
+    setShoppingList(newItems);
   };
   return (
     <FlatList
@@ -52,7 +61,7 @@ export default function App() {
       stickyHeaderIndices={[0]}
       ListEmptyComponent={
         <View style={styles.listEmptyContainer}>
-          <Text>Your shooping list is empty</Text>
+          <Text>Your shopping list is empty</Text>
         </View>
       }
       ListHeaderComponent={
@@ -68,8 +77,9 @@ export default function App() {
       renderItem={({ item }) => (
         <ShoppingListItem
           name={item.name}
-          isCompleted={item.isCompleted}
-          onComplete={() => onComplete(item.id)}
+          completedAtTimestamp={item.completedAtTimestamp}
+          onDelete={() => handleDelete(item.id)}
+          onToggleComplete={() => handleToggleComplete(item.id)}
         />
       )}
     />

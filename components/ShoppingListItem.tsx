@@ -1,15 +1,29 @@
-import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  StyleSheet,
+  Text,
+  Pressable,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { theme } from "../theme";
 import { AntDesign } from "@expo/vector-icons";
 import Entypo from "@expo/vector-icons/Entypo";
+import Feather from "@expo/vector-icons/Feather";
 
 interface Props {
   name: string;
-  isCompleted: boolean;
-  onComplete: () => void;
+  completedAtTimestamp: number | undefined;
+  onDelete: () => void;
+  onToggleComplete: () => void;
 }
 
-function ShoppingListItem({ name, isCompleted, onComplete }: Props) {
+function ShoppingListItem({
+  name,
+  onDelete,
+  completedAtTimestamp,
+  onToggleComplete,
+}: Props) {
   const handleDelete = () => {
     Alert.alert(
       `Are you sure you want to delete ${name}?`,
@@ -21,7 +35,7 @@ function ShoppingListItem({ name, isCompleted, onComplete }: Props) {
         },
         {
           text: "Yes",
-          onPress: () => onComplete(),
+          onPress: () => onDelete(),
           style: "destructive",
         },
       ],
@@ -31,17 +45,22 @@ function ShoppingListItem({ name, isCompleted, onComplete }: Props) {
     <View
       style={[
         styles.itemContainer,
-        isCompleted ? styles.completedContainer : undefined,
+        completedAtTimestamp ? styles.completedContainer : undefined,
       ]}
     >
       <View style={styles.leftContainer}>
-        <TouchableOpacity activeOpacity={0.8}>
-          <Entypo name="circle" size={20} color="green" />
-        </TouchableOpacity>
+        <Pressable hitSlop={20} onPress={onToggleComplete}>
+          {completedAtTimestamp ? (
+            <Entypo name="circle" size={20} color="green" />
+          ) : (
+            <Feather name="check" size={24} color="black" />
+          )}
+        </Pressable>
+
         <Text
           style={[
             styles.itemText,
-            isCompleted ? styles.completedText : undefined,
+            completedAtTimestamp ? styles.completedText : undefined,
           ]}
         >
           {name}
@@ -52,7 +71,7 @@ function ShoppingListItem({ name, isCompleted, onComplete }: Props) {
         <AntDesign
           name="closecircle"
           size={24}
-          color={isCompleted ? theme.colorGray : theme.colorRed}
+          color={completedAtTimestamp ? theme.colorGray : theme.colorRed}
         />
       </TouchableOpacity>
     </View>
@@ -64,7 +83,7 @@ export default ShoppingListItem;
 const styles = StyleSheet.create({
   leftContainer: {
     flexDirection: "row",
-    gap: 2,
+    gap: 3,
     alignItems: "center",
   },
   itemContainer: {

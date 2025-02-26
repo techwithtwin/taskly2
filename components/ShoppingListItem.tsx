@@ -51,13 +51,14 @@ function ShoppingListItem({
       <View style={styles.leftContainer}>
         <Pressable hitSlop={20} onPress={onToggleComplete}>
           {completedAtTimestamp ? (
-            <Entypo name="circle" size={20} color="green" />
+            <Feather name="check" size={24} color={theme.colorGray} />
           ) : (
-            <Feather name="check" size={24} color="black" />
+            <Entypo name="circle" size={20} color="green" />
           )}
         </Pressable>
 
         <Text
+          numberOfLines={1}
           style={[
             styles.itemText,
             completedAtTimestamp ? styles.completedText : undefined,
@@ -81,25 +82,28 @@ function ShoppingListItem({
 export default ShoppingListItem;
 
 const styles = StyleSheet.create({
-  leftContainer: {
-    flexDirection: "row",
-    gap: 3,
-    alignItems: "center",
-  },
   itemContainer: {
-    paddingHorizontal: 18,
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: theme.colorCerulian,
     flexDirection: "row",
+    gap: 3,
     justifyContent: "space-between",
     alignItems: "center",
+    maxWidth: "100%",
   },
+
   completedContainer: {
     backgroundColor: theme.colorLightGray,
     borderBottomColor: theme.colorLightGray,
   },
-  itemText: { fontSize: 18, fontWeight: "300" },
+  leftContainer: {
+    flexDirection: "row",
+    gap: 4,
+    alignItems: "center",
+    flex: 1,
+  },
+  itemText: { fontSize: 18, fontWeight: "300", flex: 1 },
   completedText: {
     color: theme.colorGray,
     textDecorationLine: "line-through",

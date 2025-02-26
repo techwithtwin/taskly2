@@ -53,9 +53,23 @@ export default function App() {
 
     setShoppingList(newItems);
   };
+
+  const sortedShoppingList = () => {
+    const sortedList = shoppingList.sort((a, b) => {
+      if (!a.completedAtTimestamp && !b.completedAtTimestamp) {
+        return a.name.localeCompare(b.name);
+      }
+      if (!a.completedAtTimestamp) return -1;
+      if (!b.completedAtTimestamp) return 1;
+
+      return 0;
+    });
+
+    return sortedList;
+  };
   return (
     <FlatList
-      data={shoppingList}
+      data={sortedShoppingList()}
       style={styles.container}
       contentContainerStyle={styles.contentContainer}
       stickyHeaderIndices={[0]}

@@ -12,6 +12,7 @@ import ShoppingListItem from "../components/ShoppingListItem";
 import { theme } from "../theme";
 import { getFromStorage, saveToStorage } from "../utils/storage";
 import { storageKey } from "../constants";
+import * as Haptics from "expo-haptics";
 
 type ShoppingListItemType = {
   id: string;
@@ -65,12 +66,19 @@ export default function App() {
 
   const handleDelete = async (id: string) => {
     const newItems = shoppingList.filter((item) => item.id !== id);
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setShoppingList(newItems);
     await saveToStorage(storageKey, newItems);
   };
   const handleToggleComplete = async (id: string) => {
     const newItems = shoppingList.map((item) => {
       if (item.id === id) {
+        if (item.completedAtTimestamp) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        } else {
+          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+        }
         return {
           ...item,
           completedAtTimestamp: item.completedAtTimestamp
